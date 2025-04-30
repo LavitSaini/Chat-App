@@ -2,7 +2,10 @@ import cloudinary from "../lib/cloudinary.js";
 import { getReceiverSocketId, io } from "../lib/socket.js";
 import Message from "../models/message.model.js";
 import User from "../models/user.model.js";
+import dotenv from "dotenv";
+import { GoogleGenAI } from "@google/genai";
 
+dotenv.config();
 
 export const getAllAnotherUsers = async (req, res) => {
   let logInUserId = req.user._id;
@@ -26,8 +29,8 @@ export const getMessages = async (req, res) => {
     const messages = await Message.find({
       $or: [
         { senderId: currentUserId, receiverId: anotherUserId },
-        { senderId: anotherUserId, receiverId: currentUserId }
-      ]
+        { senderId: anotherUserId, receiverId: currentUserId },
+      ],
     });
 
     return res.status(200).json(messages);
@@ -40,10 +43,8 @@ export const getMessages = async (req, res) => {
 export const sendMessage = async (req, res) => {
   const { text, image } = req.body;
 
-  const receiverId =  req.params.id;
+  const receiverId = req.params.id;
   const senderId = req.user._id;
-
-  console.log(senderId, receiverId);
 
   try {
     let imageUrl;
@@ -55,21 +56,42 @@ export const sendMessage = async (req, res) => {
     }
 
     const message = await Message.create({
-        senderId,
-        receiverId,
-        text,
-        image: imageUrl
+      senderId,
+      receiverId,
+      text,
+      image: imageUrl,
     });
 
     // Real-time functionality
+
+    // Handle Users Chat
     const receiverSocketId = getReceiverSocketId(receiverId);
 
-    if(receiverSocketId) {
+    if (receiverSocketId) {
       io.to(receiverSocketId).emit("newMessage", message);
     }
 
-    return res.status(201).json(message);
+    // Handle AI Chat
+    if (receiverId === process.env.AI_USER_ID) {
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const response = await ai.models.generateContent({
+        model: "gemini-2.0-flash",
+        contents: text,
+      });
 
+      const aiMessage = await Message.create({
+        senderId: receiverId, // AI is sender
+        receiverId: senderId, // user is receiver
+        text: response.text,
+      });
+
+      const senderSocketId = getReceiverSocketId(senderId);
+      if (senderSocketId) {
+        io.to(senderSocketId).emit("newMessage", aiMessage);
+      }
+    }
+
+    return res.status(201).json(message);
   } catch (error) {
     console.log("SendMessage Controller Error: ", error);
     return res.status(500).json({ message: "Internal Server Error!" });

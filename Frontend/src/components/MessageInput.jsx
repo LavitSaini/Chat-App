@@ -3,20 +3,19 @@ import { useChatStore } from "../store/useChatStore";
 import { Image, Send, X } from "lucide-react";
 import toast from "react-hot-toast";
 
-const MessageInput = () => {
+const MessageInput = ({ showImageSendButton, paddingX }) => {
   const [text, setText] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
 
-  const { sendMessage } = useChatStore();
-
+  const { sendMessage, sendMessageToAI } = useChatStore();
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
 
-    if(!file.type.startsWith("image/")){
-        toast.error("Please select an image file!");
-        return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file!");
+      return;
     }
 
     const reader = new FileReader();
@@ -24,36 +23,45 @@ const MessageInput = () => {
     reader.onload = () => {
       const base64Image = reader.result;
       setImagePreview(base64Image);
-    }
+    };
   };
 
   const removeImage = () => {
     setImagePreview(null);
-    if(fileInputRef.current) fileInputRef.current.value = "";
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
 
-    if(!text.trim() && !imagePreview) return;
+    console.log("send");
+
+    if (!text.trim() && !imagePreview) return;
 
     try {
+      if (showImageSendButton) {
         await sendMessage({
-            text: text.trim(),
-            image: imagePreview
-        })
+          text: text.trim(),
+          image: imagePreview,
+        });
+      } else {
+        await sendMessageToAI({
+          text: text.trim(),
+          image: imagePreview,
+        });
+      }
 
-        // clear form
-        setText("");
-        setImagePreview(null);
-        if(fileInputRef.current) fileInputRef.current.value = "";
+      // clear form
+      setText("");
+      setImagePreview(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (error) {
-        console.log("Failed to send message: ", error); 
+      console.log("Failed to send message: ", error);
     }
   };
 
   return (
-    <div className="p-4 w-full">
+    <div className={`w-full ${paddingX} py-4`}>
       {imagePreview && (
         <div className="mb-3 flex items-center gap-2">
           <div className="relative">
@@ -91,14 +99,16 @@ const MessageInput = () => {
             onChange={handleImageChange}
           />
 
-          <button
-            type="button"
-            className={`sm:flex btn btn-circle
+          {showImageSendButton && (
+            <button
+              type="button"
+              className={`sm:flex btn btn-circle
                      ${imagePreview ? "text-emerald-500" : "text-zinc-400"}`}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <Image size={20} />
-          </button>
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Image size={20} />
+            </button>
+          )}
         </div>
 
         <button

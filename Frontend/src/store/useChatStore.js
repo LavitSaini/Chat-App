@@ -35,6 +35,18 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
+  getAIMessages: async() => {
+    set({ isMessagesLoading: true });
+    try {
+      const res = await axiosInstance.get(`/messages/661a123abc456def7890ab12`);
+      set({ messages: res.data });
+    } catch (error) {
+      toast.error(error.response.data.message);
+    } finally {
+      set({ isMessagesLoading: false });
+    }
+  },
+
   sendMessage: async (messageData) => {
     const { selectedUser } = get();
     try {
@@ -42,9 +54,23 @@ export const useChatStore = create((set, get) => ({
         `/messages/send/${selectedUser._id}`,
         messageData
       );
+      console.log(res);
       set({ messages: [...get().messages, res.data] });
     } catch (error) {
-      toast.error("Image size too large!");
+      toast.error(error);
+    }
+  },
+
+  sendMessageToAI: async (messageData) => {
+    try {
+      const res = await axiosInstance.post(
+        `/messages/send/661a123abc456def7890ab12`,
+        messageData
+      );
+      console.log(res);
+      set({ messages: [...get().messages, res.data] });
+    } catch (error) {
+      toast.error(error);
     }
   },
 
@@ -60,6 +86,15 @@ export const useChatStore = create((set, get) => ({
         newMessage.senderId === selectedUser._id;
       if (!isMessageSendFromSelectedUser) return;
 
+      set({ messages: [...get().messages, newMessage] });
+    });
+  },
+
+  subscribeToAIMessages: () => {
+
+    const socket = useAuthStore.getState().socket;
+
+    socket.on("newMessage", (newMessage) => {
       set({ messages: [...get().messages, newMessage] });
     });
   },

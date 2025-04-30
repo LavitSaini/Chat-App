@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@google/genai": "^0.10.0",
     "bcryptjs": "^2.4.3",
     "chat-app": "file:..",
     "cloudinary": "^2.5.1",
