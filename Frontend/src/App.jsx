@@ -11,6 +11,7 @@ import { useAuthStore } from "./store/useAuthStore";
 import { Loader } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 import { useThemeStore } from "./store/useThemeStore";
+import AiChatPage from "./pages/AiChatPage";
 
 
 const App = () => {
@@ -37,6 +38,10 @@ const App = () => {
         <Route
           path="/"
           element={authUser ? <HomePage /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/ai-chat"
+          element={authUser ? <AiChatPage /> : <Navigate to="/login" />}
         />
         <Route
           path="/signup"

@@ -44,7 +44,7 @@ const ChatContainer = () => {
       <div className="flex-1 flex flex-col overflow-auto">
         <ChatHeader />
         <MessagesSkeleton />
-        <MessageInput />
+        <MessageInput showImageSendButton={true} paddingX={"px-4"} />
       </div>
     );
 
@@ -91,7 +91,7 @@ const ChatContainer = () => {
           </div>
         ))}
       </div>
-      <MessageInput />
+      <MessageInput showImageSendButton={true} paddingX={"px-4"} />
     </div>
   );
 };

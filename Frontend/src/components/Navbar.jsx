@@ -1,10 +1,10 @@
 import React from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import { Link } from "react-router-dom";
-import { Settings, User, LogOut, MessageSquare } from "lucide-react";
+import { Settings, User, LogOut, MessageSquare, Bot } from "lucide-react";
 
 const Navbar = () => {
-  const {logout, authUser} = useAuthStore();
+  const { logout, authUser } = useAuthStore();
 
   return (
     <header
@@ -13,7 +13,7 @@ const Navbar = () => {
     >
       <div className="container mx-auto px-4 h-16">
         <div className="flex items-center justify-between h-full">
-          <div className="flex items-center gap-8">
+          <div>
             <Link
               to="/"
               className="flex items-center gap-2.5 hover:opacity-80 transition-all"
@@ -25,7 +25,15 @@ const Navbar = () => {
             </Link>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <Link
+              to={"/ai-chat"}
+              className={`btn btn-sm gap-2 transition-colors`}
+            >
+              <Bot className="w-4 h-4" />
+              <span className="hidden sm:inline">Chat With AI</span>
+            </Link>
+
             <Link
               to={"/settings"}
               className={`
